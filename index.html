@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>허재영 — 포트폴리오</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg:#0a0b0d;
+    --bg-card:#141619;
+    --text-main:#f2f1ec;
+    --text-sub:#9a9d9f;
+    --accent:#8ef0c0;
+    --border:rgba(242,241,236,0.08);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text-main);
+    font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  canvas#scene{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index:0;
+    display:block;
+  }
+  #preloader{
+    position:fixed; inset:0; background:#0a0b0d; z-index:999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:opacity .8s ease;
+  }
+  #preloader .bar-track{
+    width:220px; height:2px; background:rgba(242,241,236,0.15); overflow:hidden;
+  }
+  #preloader .bar-fill{
+    width:0%; height:100%; background:var(--accent); transition:width .3s ease;
+  }
+  #preloader .label{
+    margin-top:16px; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-sub);
+  }
+  #preloader.hidden{opacity:0; pointer-events:none;}
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:24px 32px;
+    mix-blend-mode:difference;
+  }
+  header .brand{ font-size:13px; letter-spacing:0.1em; font-weight:600; }
+  header .social{ display:flex; gap:16px; }
+  header .social a{ color:var(--text-main); text-decoration:none; font-size:12px; letter-spacing:0.05em; opacity:0.85; }
+  header .social a:hover{ opacity:1; color:var(--accent); }
+
+  main{ position:relative; z-index:5; }
+
+  section{
+    max-width:900px;
+    margin:0 auto;
+    padding:64px 28px;
+    position:relative;
+  }
+
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .hero .eyebrow{
+    font-size:12.5px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:18px; font-weight:600;
+  }
+  .hero h1{
+    font-size:clamp(56px,12vw,132px);
+    font-weight:800;
+    line-height:0.92;
+    margin:0;
+    letter-spacing:-0.02em;
+  }
+  .hero .role{
+    margin-top:22px;
+    font-size:clamp(14px,2.2vw,20px);
+    color:var(--text-sub);
+    letter-spacing:0.02em;
+  }
+  .hero .scroll-hint{
+    position:absolute; bottom:40px; left:28px;
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-sub);
+  }
+
+  h2.section-title{
+    font-size:12.5px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 32px 0; font-weight:600;
+  }
+
+  .intro-text{
+    font-size:clamp(18px,2.6vw,26px);
+    font-weight:500;
+    color:var(--text-main);
+    max-width:640px;
+  }
+  .intro-text span{ color:var(--text-sub); }
+
+  blockquote.quote{
+    margin:0 0 14px 0;
+    padding:0 0 0 22px;
+    border-left:2px solid var(--accent);
+    font-size:clamp(17px,2.3vw,23px);
+    font-weight:600;
+    line-height:1.45;
+    color:var(--text-main);
+    max-width:640px;
+  }
+  .quote-author{
+    font-size:12.5px;
+    letter-spacing:0.08em;
+    color:var(--text-sub);
+    margin:0 0 34px 22px;
+  }
+
+  .project-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+  }
+  @media (max-width:640px){ .project-grid{ grid-template-columns:1fr; } }
+  .project-card{
+    background:var(--bg-card);
+    padding:32px 28px;
+    transition:background .25s ease;
+  }
+  .project-card:hover{ background:#191c1f; }
+  .project-card .num{ font-size:11px; color:var(--accent); letter-spacing:0.1em; }
+  .project-card h3{ font-size:19px; margin:10px 0 8px 0; font-weight:700; }
+  .project-card p{ font-size:13.5px; color:var(--text-sub); margin:0; }
+
+  .tool-list{ display:flex; flex-wrap:wrap; gap:10px; }
+  .tool-chip{
+    background:var(--bg-card); border:1px solid var(--border);
+    color:var(--text-main); font-size:13.5px; padding:9px 18px; border-radius:999px;
+  }
+
+  .contact-links{ display:flex; flex-wrap:wrap; gap:14px; }
+  .contact-item{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:14.5px; color:var(--text-main); text-decoration:none;
+    background:var(--bg-card); border:1px solid var(--border);
+    padding:12px 18px; border-radius:999px; transition:border-color .2s ease, color .2s ease;
+  }
+  .contact-item:hover{ border-color:var(--accent); color:var(--accent); }
+  .contact-item svg{ width:16px; height:16px; }
+
+  footer{
+    text-align:center; font-size:12px; color:var(--text-sub);
+    padding:40px 24px 56px 24px; position:relative; z-index:5;
+  }
+
+  .reveal{ opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s ease; }
+  .reveal.visible{ opacity:1; transform:translateY(0); }
+
+  .agent-panel{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:36px 32px;
+    position:relative;
+    overflow:hidden;
+  }
+  .agent-panel::before{
+    content:"";
+    position:absolute; top:0; left:0; width:3px; height:100%;
+    background:var(--accent);
+  }
+  .agent-panel .agent-tag{
+    display:inline-block;
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--accent); border:1px solid var(--accent);
+    border-radius:999px; padding:4px 12px; margin-bottom:16px;
+  }
+  .agent-panel h3{ font-size:22px; margin:0 0 12px 0; font-weight:700; }
+  .agent-panel p{ font-size:14.5px; color:var(--text-sub); max-width:600px; margin:0 0 20px 0; }
+  .agent-thumb{
+    width:100%; border-radius:10px; overflow:hidden;
+    border:1px solid var(--border); margin-bottom:22px;
+  }
+  .agent-thumb img{ width:100%; display:block; }
+  .agent-sources{ display:flex; flex-wrap:wrap; gap:8px; }
+  .agent-sources span{
+    font-size:12px; color:var(--text-main);
+    background:rgba(142,240,192,0.08); border:1px solid var(--border);
+    border-radius:999px; padding:6px 14px;
+  }
+
+  .note-placeholder{
+    font-size:11.5px; color:var(--text-sub); border:1px dashed var(--border);
+    border-radius:8px; padding:10px 14px; margin-top:20px; max-width:480px;
+  }
+</style>
+</head>
+<body>
+
+<div id="preloader">
+  <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+  <div class="label" id="loadLabel">분자 구조 정렬 중</div>
+</div>
+
+<canvas id="scene"></canvas>
+
+<header>
+  <div class="brand">허재영</div>
+  <div class="social">
+    <a href="mailto:gjwodud1815@gmail.com">Email</a>
+    <a href="https://instagram.com/plus_alpaca" target="_blank" rel="noopener noreferrer">Instagram</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">동서대학교 신소재화학공학과</div>
+    <h1>HEO<br>JAEYOUNG</h1>
+    <div class="role">Materials &amp; Chemical Engineering</div>
+    <div class="scroll-hint">Scroll ↓</div>
+  </section>
+
+  <section>
+    <h2 class="section-title reveal">Intro</h2>
+    <blockquote class="quote reveal">"The biggest risk is not taking any risk. In a world that's changing really quickly, the only strategy that is guaranteed to fail is not taking risks."</blockquote>
+    <div class="quote-author reveal">— Mark Zuckerberg</div>
+    <p class="intro-text reveal">
+      새로운 도전 앞에서 망설이지 않습니다.
+      <span>리스크를 재는 시간보다, 일단 부딪히며 답을 찾는 실행력을 믿습니다.</span>
+    </p>
+  </section>
+
+  <section>
+    <h2 class="section-title reveal">Selected Work</h2>
+    <div class="project-grid reveal">
+      <div class="project-card">
+        <div class="num">01</div>
+        <h3>프로젝트 제목 01</h3>
+        <p>프로젝트에 대한 한두 줄 설명을 이곳에 적어주세요.</p>
+      </div>
+      <div class="project-card">
+        <div class="num">02</div>
+        <h3>프로젝트 제목 02</h3>
+        <p>프로젝트에 대한 한두 줄 설명을 이곳에 적어주세요.</p>
+      </div>
+      <div class="project-card">
+        <div class="num">03</div>
+        <h3>프로젝트 제목 03</h3>
+        <p>프로젝트에 대한 한두 줄 설명을 이곳에 적어주세요.</p>
+      </div>
+      <div class="project-card">
+        <div class="num">04</div>
+        <h3>프로젝트 제목 04</h3>
+        <p>프로젝트에 대한 한두 줄 설명을 이곳에 적어주세요.</p>
+      </div>
+    </div>
+    <div class="note-placeholder reveal">위 프로젝트 항목은 예시입니다. 실제 연구/프로젝트 내용을 알려주시면 채워드릴게요.</div>
+  </section>
+
+  <section>
+    <h2 class="section-title reveal">Agent</h2>
+    <div class="agent-panel reveal">
+      <span class="agent-tag">Instagram 콘텐츠 소싱 자동화</span>
+      <div class="agent-thumb"><img src="agent-screenshot.png" alt="대외활동·장학금·지원금·채용 대시보드 스크린샷"></div>
+      <h3>대외활동·장학금·지원금·채용 대시보드</h3>
+      <p>
+        운영 예정인 인스타그램 채널에 올릴 콘텐츠 소재를 확보하기 위해 만든 에이전트입니다.
+        공식 플랫폼과 공공 API에서 대외활동·장학금·지원금·채용 공고를 자동으로 수집하고,
+        카테고리별로 분류해 마감(D-day)까지 함께 보여줍니다.
+      </p>
+      <div class="agent-sources">
+        <span>링커리어</span>
+        <span>한국장학재단</span>
+        <span>사람인</span>
+        <span>온통청년 공공 API</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title reveal">Tools</h2>
+    <div class="tool-list reveal">
+      <span class="tool-chip">Genspark AI</span>
+      <span class="tool-chip">Claude Code</span>
+      <span class="tool-chip">Notion</span>
+      <span class="tool-chip">VS Code</span>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title reveal">Contact</h2>
+    <div class="contact-links reveal">
+      <a class="contact-item" href="mailto:gjwodud1815@gmail.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+        gjwodud1815@gmail.com
+      </a>
+      <a class="contact-item" href="https://instagram.com/plus_alpaca" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        @plus_alpaca
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>&copy; 2026 Heo Jaeyoung. All rights reserved.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // ---------- Preloader ----------
+  const loadMessages = ["분자 구조 정렬 중","결정격자 계산 중","촉매 반응 준비 중","전자 궤도 그리는 중","실험 데이터 로딩 중"];
+  let msgIdx = 0;
+  const barFill = document.getElementById('barFill');
+  const loadLabel = document.getElementById('loadLabel');
+  let progress = 0;
+  const loadInterval = setInterval(() => {
+    progress += Math.random() * 18;
+    if (progress >= 100) progress = 100;
+    barFill.style.width = progress + '%';
+    if (progress >= 100) {
+      clearInterval(loadInterval);
+      setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 300);
+    }
+  }, 220);
+  setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadMessages.length;
+    loadLabel.textContent = loadMessages[msgIdx];
+  }, 500);
+
+  // ---------- Three.js molecule scene ----------
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 9);
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambient);
+  const point = new THREE.PointLight(0x8ef0c0, 2, 50);
+  point.position.set(5, 5, 5);
+  scene.add(point);
+  const point2 = new THREE.PointLight(0x5566ff, 1.2, 50);
+  point2.position.set(-5, -3, 4);
+  scene.add(point2);
+
+  // Molecule group: central + orbiting atoms connected by bonds
+  const moleculeGroup = new THREE.Group();
+  scene.add(moleculeGroup);
+
+  const atomGeo = new THREE.IcosahedronGeometry(0.45, 1);
+  const atomMatCore = new THREE.MeshStandardMaterial({ color: 0x8ef0c0, roughness: 0.25, metalness: 0.4, emissive: 0x1a3d2e, emissiveIntensity: 0.4 });
+  const atomMatOuter = new THREE.MeshStandardMaterial({ color: 0xdbe6e0, roughness: 0.4, metalness: 0.2 });
+
+  const core = new THREE.Mesh(atomGeo, atomMatCore);
+  moleculeGroup.add(core);
+
+  const orbitals = [];
+  const nAtoms = 7;
+  for (let i = 0; i < nAtoms; i++) {
+    const radius = 2.1 + Math.random() * 1.1;
+    const phi = Math.acos(-1 + (2 * i) / nAtoms);
+    const theta = Math.sqrt(nAtoms * Math.PI) * phi;
+
+    const atom = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22 + Math.random() * 0.12, 0), atomMatOuter.clone());
+    atom.userData.radius = radius;
+    atom.userData.phi = phi;
+    atom.userData.theta = theta;
+    atom.userData.speed = 0.15 + Math.random() * 0.15;
+    moleculeGroup.add(atom);
+    orbitals.push(atom);
+
+    const bondGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 6);
+    const bondMat = new THREE.MeshStandardMaterial({ color: 0x4b524e, roughness: 0.6 });
+    const bond = new THREE.Mesh(bondGeo, bondMat);
+    moleculeGroup.add(bond);
+    atom.userData.bond = bond;
+  }
+
+  function placeOrbitals(t) {
+    orbitals.forEach((atom) => {
+      const { radius, phi, theta, speed } = atom.userData;
+      const a = theta + t * speed;
+      const x = radius * Math.sin(phi) * Math.cos(a);
+      const y = radius * Math.cos(phi);
+      const z = radius * Math.sin(phi) * Math.sin(a);
+      atom.position.set(x, y, z);
+
+      const bond = atom.userData.bond;
+      const mid = atom.position.clone().multiplyScalar(0.5);
+      bond.position.copy(mid);
+      bond.scale.y = atom.position.length();
+      bond.lookAt(atom.position);
+      bond.rotateX(Math.PI / 2);
+    });
+  }
+
+  // Starfield-ish particles for depth
+  const particleCount = 300;
+  const particleGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount * 3; i++) positions[i] = (Math.random() - 0.5) * 40;
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particleMat = new THREE.PointsMaterial({ color: 0x2c3330, size: 0.05 });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  let scrollT = 0;
+  window.addEventListener('scroll', () => {
+    scrollT = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    placeOrbitals(t);
+    moleculeGroup.rotation.y = t * 0.12 + scrollT * Math.PI * 1.5;
+    moleculeGroup.rotation.x = Math.sin(t * 0.08) * 0.15;
+
+    camera.position.x += (mouseX * 1.2 - camera.position.x) * 0.03;
+    camera.position.y += (-mouseY * 1.0 - camera.position.y) * 0.03;
+    camera.position.z = 9 - scrollT * 3.5;
+    camera.lookAt(0, 0, 0);
+
+    particles.rotation.y = t * 0.01;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---------- Scroll reveal ----------
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
